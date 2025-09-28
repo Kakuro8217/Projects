@@ -1,52 +1,35 @@
-/**
-  ******************************************************************************
-  * @file    bsp_led.c
-  * @author  fire
-  * @version V1.0
-  * @date    2015-xx-xx
-  * @brief   ·äÃùÆ÷º¯Êı½Ó¿Ú
-  ******************************************************************************
-  * @attention
-  *
-  * ÊµÑéÆ½Ì¨:Ò°»ğ  STM32 F407 ¿ª·¢°å  
-  * ÂÛÌ³    :http://www.firebbs.cn
-  * ÌÔ±¦    :https://fire-stm32.taobao.com
-  *
-  ******************************************************************************
-  */
-  
 #include "./beep/bsp_beep.h"   
 
  /**
-  * @brief  ³õÊ¼»¯¿ØÖÆ·äÃùÆ÷µÄIO
-  * @param  ÎŞ
-  * @retval ÎŞ
+  * @brief  åˆå§‹åŒ–æ§åˆ¶èœ‚é¸£å™¨çš„IO
+  * @param  æ— 
+  * @retval æ— 
   */
 void BEEP_GPIO_Config(void)
 {		
-		/*¶¨ÒåÒ»¸öGPIO_InitTypeDefÀàĞÍµÄ½á¹¹Ìå*/
+		/*å®šä¹‰ä¸€ä¸ªGPIO_InitTypeDefç±»å‹çš„ç»“æ„ä½“*/
 		GPIO_InitTypeDef GPIO_InitStructure;
 
-		/*¿ªÆô¿ØÖÆ·äÃùÆ÷µÄGPIOµÄ¶Ë¿ÚÊ±ÖÓ*/
+		/*å¼€å¯æ§åˆ¶èœ‚é¸£å™¨çš„GPIOçš„ç«¯å£æ—¶é’Ÿ*/
 		RCC_AHB1PeriphClockCmd( BEEP_GPIO_CLK, ENABLE);   
 
-		/*Ñ¡ÔñÒª¿ØÖÆ·äÃùÆ÷µÄGPIO*/															   
+		/*é€‰æ‹©è¦æ§åˆ¶èœ‚é¸£å™¨çš„GPIO*/															   
 		GPIO_InitStructure.GPIO_Pin = BEEP_GPIO_PIN;	
 
-		/*ÉèÖÃGPIOÄ£Ê½ÎªÍ¨ÓÃÍÆÍìÊä³ö*/
+		/*è®¾ç½®GPIOæ¨¡å¼ä¸ºé€šç”¨æ¨æŒ½è¾“å‡º*/
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;   
 	
 	  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
 
-		/*ÉèÖÃGPIOËÙÂÊÎª50MHz */   
+		/*è®¾ç½®GPIOé€Ÿç‡ä¸º50MHz */   
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; 
 
-		/*µ÷ÓÃ¿âº¯Êı£¬³õÊ¼»¯¿ØÖÆ·äÃùÆ÷µÄGPIO*/
+		/*è°ƒç”¨åº“å‡½æ•°ï¼Œåˆå§‹åŒ–æ§åˆ¶èœ‚é¸£å™¨çš„GPIO*/
 		GPIO_Init(BEEP_GPIO_PORT, &GPIO_InitStructure);			 
     
-    /* ¹Ø±Õ·äÃùÆ÷*/
+    /* å…³é—­èœ‚é¸£å™¨*/
 		GPIO_ResetBits(BEEP_GPIO_PORT, BEEP_GPIO_PIN);	 
 }
 /*********************************************END OF FILE**********************/
