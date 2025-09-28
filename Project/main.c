@@ -5,42 +5,73 @@
 #include "./beep/bsp_beep.h"
 
 
-// ADC1×ª»»µÄµçÑ¹ÖµÍ¨¹ıMDA·½Ê½´«µ½SRAM
+// ADC1è½¬æ¢çš„ç”µå‹å€¼é€šè¿‡MDAæ–¹å¼ä¼ åˆ°SRAM
 extern __IO uint32_t ADC_ConvertedValue[3];
 
-// ¾Ö²¿±äÁ¿£¬ÓÃÓÚ±£´æ×ª»»¼ÆËãºóµÄµçÑ¹Öµ 	 
+// å±€éƒ¨å˜é‡ï¼Œç”¨äºä¿å­˜è½¬æ¢è®¡ç®—åçš„ç”µå‹å€¼ 	 
 float ADC_ConvertedValueLocal[3]; 
 
-static void Delay(__IO uint32_t nCount)	 //¼òµ¥µÄÑÓÊ±º¯Êı
+// ç”µå‹æ­£å¸¸èŒƒå›´å®šä¹‰ - æ ¹æ®ä½ çš„éœ€æ±‚è°ƒæ•´
+#define VOLTAGE_MIN    1.0f    // æœ€ä½æ­£å¸¸ç”µå‹
+#define VOLTAGE_MAX    2.5f    // æœ€é«˜æ­£å¸¸ç”µå‹
+
+static void Delay(__IO uint32_t nCount)	 //ç®€å•çš„å»¶æ—¶å‡½æ•°
 {
 	for(; nCount != 0; nCount--);
 }
 
 typedef enum {
-    SYSTEM_NORMAL = 0,     // ÏµÍ³Õı³£
-    SYSTEM_VOLTAGE_LOW,    // µçÑ¹¹ıµÍ
-    SYSTEM_VOLTAGE_HIGH,   // µçÑ¹¹ı¸ß
-    SYSTEM_ERROR           // ³ÌĞòÒì³£
+    SYSTEM_NORMAL = 0,     // ç³»ç»Ÿæ­£å¸¸
+    SYSTEM_VOLTAGE_LOW,    // ç”µå‹è¿‡ä½
+    SYSTEM_VOLTAGE_HIGH,   // ç”µå‹è¿‡é«˜
 } System_Status;
+
+static void LED_SetStatus(System_Status status)
+{
+    switch(status) {
+        case SYSTEM_NORMAL:
+            // ç»¿ç¯äº®ï¼Œçº¢ç¯ç­
+            GPIO_SetBits(LED2_GPIO_PORT, LED2_PIN);
+            GPIO_ResetBits(LED1_GPIO_PORT, LED1_PIN);
+            break;
+            
+        case SYSTEM_VOLTAGE_LOW:
+        case SYSTEM_VOLTAGE_HIGH:
+            // ç»¿ç¯ç­ï¼Œçº¢ç¯å¸¸äº®ï¼ˆç”µå‹å¼‚å¸¸ï¼‰
+            GPIO_ResetBits(LED2_GPIO_PORT, LED2_PIN);
+            GPIO_SetBits(LED1_GPIO_PORT, LED1_PIN);
+            break;
+            
+			}
+}
 
 static System_Status system_status = SYSTEM_NORMAL;
 
-
+static System_Status Voltage_Check(float voltage)
+{
+    if (voltage < VOLTAGE_MIN) {
+        return SYSTEM_VOLTAGE_LOW;
+    } else if (voltage > VOLTAGE_MAX) {
+        return SYSTEM_VOLTAGE_HIGH;
+    } else {
+        return SYSTEM_NORMAL;
+    }
+}
 /**
-  * @brief  Ö÷º¯Êı
-  * @param  ÎŞ
-  * @retval ÎŞ
+  * @brief  ä¸»å‡½æ•°
+  * @param  æ— 
+  * @retval æ— 
   */
 int main(void)
 {	
-  /*³õÊ¼»¯USART ÅäÖÃÄ£Ê½Îª 115200 8-N-1£¬ÖĞ¶Ï½ÓÊÕ*/
+  /*åˆå§‹åŒ–USART é…ç½®æ¨¡å¼ä¸º 115200 8-N-1ï¼Œä¸­æ–­æ¥æ”¶*/
   Debug_USART_Config();
 	LED_GPIO_Config();
 	BEEP_GPIO_Config();
 	Rheostat_Init();	
 	
-	printf("ÏµÍ³Æô¶¯Íê³É...\r\n");
-  printf("µçÑ¹Õı³£·¶Î§: %.1fV - %.1fV\r\n", VOLTAGE_MIN, VOLTAGE_MAX);
+	printf("ç³»ç»Ÿå¯åŠ¨å®Œæˆ...\r\n");
+  printf("ç”µå‹æ­£å¸¸èŒƒå›´: %.1fV - %.1fV\r\n", VOLTAGE_MIN, VOLTAGE_MAX);
 	
   while (1)
   {
@@ -50,7 +81,7 @@ int main(void)
     ADC_ConvertedValueLocal[1] =(float)((uint16_t)ADC_ConvertedValue[1]*3.3/4096);
     ADC_ConvertedValueLocal[2] =(float)((uint16_t)ADC_ConvertedValue[2]*3.3/4096);
     
-		// ÉèÖÃLED×´Ì¬
+		// è®¾ç½®LEDçŠ¶æ€
     LED_SetStatus(system_status);
 		
     printf("\r\n The current AD value = 0x%08X \r\n", ADC_ConvertedValue[0]); 
@@ -61,20 +92,18 @@ int main(void)
     printf("\r\n The current ADC2 value = %f V \r\n",ADC_ConvertedValueLocal[1]);
     printf("\r\n The current ADC3 value = %f V \r\n",ADC_ConvertedValueLocal[2]);
   
-	  // ´òÓ¡ÏµÍ³×´Ì¬
+	  // æ‰“å°ç³»ç»ŸçŠ¶æ€
         switch(system_status) {
             case SYSTEM_NORMAL:
-                printf("ÏµÍ³×´Ì¬: Õı³£\r\n");
+                printf("ç³»ç»ŸçŠ¶æ€: æ­£å¸¸\r\n");
                 break;
             case SYSTEM_VOLTAGE_LOW:
-                printf("ÏµÍ³×´Ì¬: µçÑ¹¹ıµÍ!\r\n");
+                printf("ç³»ç»ŸçŠ¶æ€: ç”µå‹è¿‡ä½!\r\n");
                 break;
             case SYSTEM_VOLTAGE_HIGH:
-                printf("ÏµÍ³×´Ì¬: µçÑ¹¹ı¸ß!\r\n");
+                printf("ç³»ç»ŸçŠ¶æ€: ç”µå‹è¿‡é«˜!\r\n");
                 break;
-            case SYSTEM_ERROR:
-                printf("ÏµÍ³×´Ì¬: ³ÌĞòÒì³£!\r\n");
-                break;
+
 					}
 				printf("==================\r\n");
 	}
