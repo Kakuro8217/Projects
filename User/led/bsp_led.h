@@ -3,32 +3,29 @@
 
 #include "stm32f4xx.h"
 
-//Òý½Å¶¨Òå
+//å¼•è„šå®šä¹‰
 /*******************************************************/
-//R ºìÉ«µÆ
+//R çº¢è‰²ç¯
 #define LED1_PIN                  GPIO_Pin_6                 
 #define LED1_GPIO_PORT            GPIOF                      
 #define LED1_GPIO_CLK             RCC_AHB1Periph_GPIOF
 
-//G ÂÌÉ«µÆ
+//G ç»¿è‰²ç¯
 #define LED2_PIN                  GPIO_Pin_7                 
 #define LED2_GPIO_PORT            GPIOF                      
 #define LED2_GPIO_CLK             RCC_AHB1Periph_GPIOF
 
-#define VOLTAGE_MIN    1.0f    // ×îµÍÕý³£µçÑ¹
-#define VOLTAGE_MAX    2.5f    // ×î¸ßÕý³£µçÑ¹
-
 /************************************************************/
 
 
-/** ¿ØÖÆLEDµÆÁÁÃðµÄºê£¬
-	* LEDµÍµçÆ½ÁÁ£¬ÉèÖÃON=0£¬OFF=1
-	* ÈôLED¸ßµçÆ½ÁÁ£¬°ÑºêÉèÖÃ³ÉON=1 £¬OFF=0 ¼´¿É
+/** æŽ§åˆ¶LEDç¯äº®ç­çš„å®ï¼Œ
+	* LEDä½Žç”µå¹³äº®ï¼Œè®¾ç½®ON=0ï¼ŒOFF=1
+	* è‹¥LEDé«˜ç”µå¹³äº®ï¼ŒæŠŠå®è®¾ç½®æˆON=1 ï¼ŒOFF=0 å³å¯
 	*/
 #define ON  0
 #define OFF 1
 
-/* ´ø²Îºê£¬¿ÉÒÔÏñÄÚÁªº¯ÊýÒ»ÑùÊ¹ÓÃ */
+/* å¸¦å‚å®ï¼Œå¯ä»¥åƒå†…è”å‡½æ•°ä¸€æ ·ä½¿ç”¨ */
 #define LED1(a)	if (a)	\
 					GPIO_SetBits(LED1_GPIO_PORT,LED1_PIN);\
 					else		\
