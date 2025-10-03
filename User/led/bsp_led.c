@@ -36,8 +36,7 @@ void LED_GPIO_Config(void)
 		GPIO_InitStructure.GPIO_Pin = LED2_PIN;	
     GPIO_Init(LED2_GPIO_PORT, &GPIO_InitStructure);	
 		
-		 // 初始状态：绿灯亮，红灯灭（表示程序启动）
-    GPIO_SetBits(LED2_GPIO_PORT, LED2_PIN);   // 绿灯亮
-    GPIO_ResetBits(LED1_GPIO_PORT, LED1_PIN);     // 红灯灭
+		LED1(OFF);  
+    LED2(OFF);
 
 }
