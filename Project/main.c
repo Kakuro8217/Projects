@@ -31,15 +31,17 @@ static void LED_SetStatus(System_Status status)
     switch(status) {
         case SYSTEM_NORMAL:
             // 绿灯亮，红灯灭
-            GPIO_SetBits(LED2_GPIO_PORT, LED2_PIN);
-            GPIO_ResetBits(LED1_GPIO_PORT, LED1_PIN);
+            LED2(ON);
+            LED1(OFF);
+			BEEP(BEEP_OFF);
             break;
             
         case SYSTEM_VOLTAGE_LOW:
         case SYSTEM_VOLTAGE_HIGH:
             // 绿灯灭，红灯常亮（电压异常）
-            GPIO_ResetBits(LED2_GPIO_PORT, LED2_PIN);
-            GPIO_SetBits(LED1_GPIO_PORT, LED1_PIN);
+            LED2(OFF);
+            LED1(ON);
+			BEEP(BEEP_ON);
             break;
             
 			}
@@ -75,36 +77,58 @@ int main(void)
 	
   while (1)
   {
-    Delay(0xffffee);  
+    Delay(0xfffff);  
     
     ADC_ConvertedValueLocal[0] =(float)((uint16_t)ADC_ConvertedValue[0]*3.3/4096); 
     ADC_ConvertedValueLocal[1] =(float)((uint16_t)ADC_ConvertedValue[1]*3.3/4096);
     ADC_ConvertedValueLocal[2] =(float)((uint16_t)ADC_ConvertedValue[2]*3.3/4096);
     
+		// 分别检查三个通道
+    System_Status status_ch0 = Voltage_Check(ADC_ConvertedValueLocal[0]);
+    System_Status status_ch1 = Voltage_Check(ADC_ConvertedValueLocal[1]);
+    System_Status status_ch2 = Voltage_Check(ADC_ConvertedValueLocal[2]);
+    
+    // 综合判断：任一通道异常即报警
+    if (status_ch0 == SYSTEM_VOLTAGE_LOW || status_ch1 == SYSTEM_VOLTAGE_LOW || status_ch2 == SYSTEM_VOLTAGE_LOW) {
+        system_status = SYSTEM_VOLTAGE_LOW;
+    } else if (status_ch0 == SYSTEM_VOLTAGE_HIGH || status_ch1 == SYSTEM_VOLTAGE_HIGH || status_ch2 == SYSTEM_VOLTAGE_HIGH) {
+        system_status = SYSTEM_VOLTAGE_HIGH;
+    } else {
+        system_status = SYSTEM_NORMAL;
+    }
+		
 		// 设置LED状态
     LED_SetStatus(system_status);
 		
-    printf("\r\n The current AD value = 0x%08X \r\n", ADC_ConvertedValue[0]); 
-    printf("\r\n The current AD value = 0x%08X \r\n", ADC_ConvertedValue[1]); 
-    printf("\r\n The current AD value = 0x%08X \r\n", ADC_ConvertedValue[2]); 
-    
-    printf("\r\n The current ADC1 value = %f V \r\n",ADC_ConvertedValueLocal[0]); 
-    printf("\r\n The current ADC2 value = %f V \r\n",ADC_ConvertedValueLocal[1]);
-    printf("\r\n The current ADC3 value = %f V \r\n",ADC_ConvertedValueLocal[2]);
-  
-	  // 打印系统状态
+    // 每10次循环打印一次，减少串口输出频率
+    static int count = 0;
+    if(count++ >= 10) {
+        count = 0;
+        printf("ADC1: %f V, 状态: ", ADC_ConvertedValueLocal[0]);
+        
         switch(system_status) {
-            case SYSTEM_NORMAL:
-                printf("系统状态: 正常\r\n");
-                break;
-            case SYSTEM_VOLTAGE_LOW:
-                printf("系统状态: 电压过低!\r\n");
-                break;
-            case SYSTEM_VOLTAGE_HIGH:
-                printf("系统状态: 电压过高!\r\n");
-                break;
-
-					}
+            case SYSTEM_NORMAL: printf("正常\r\n"); break;
+            case SYSTEM_VOLTAGE_LOW: printf("电压过低!\r\n"); break;
+            case SYSTEM_VOLTAGE_HIGH: printf("电压过高!\r\n"); break;
+				}
+				
+				printf("ADC2: %f V, 状态: ", ADC_ConvertedValueLocal[1]);
+        
+        switch(system_status) {
+            case SYSTEM_NORMAL: printf("正常\r\n"); break;
+            case SYSTEM_VOLTAGE_LOW: printf("电压过低!\r\n"); break;
+            case SYSTEM_VOLTAGE_HIGH: printf("电压过高!\r\n"); break;
+        }
+				
+				printf("ADC3: %f V, 状态: ", ADC_ConvertedValueLocal[2]);
+        
+        switch(system_status) {
+            case SYSTEM_NORMAL: printf("正常\r\n"); break;
+            case SYSTEM_VOLTAGE_LOW: printf("电压过低!\r\n"); break;
+            case SYSTEM_VOLTAGE_HIGH: printf("电压过高!\r\n"); break;
+				}
 				printf("==================\r\n");
+    }
+				
 	}
 }
